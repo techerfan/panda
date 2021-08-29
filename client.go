@@ -4,14 +4,17 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"log"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-type client struct {
+type Client struct {
 	conn *websocket.Conn
+	lock *sync.Mutex
 	id   string
 }
 
@@ -57,9 +60,50 @@ func makeId() string {
 	return fmt.Sprintf("%x", id)
 }
 
-func newClient(conn *websocket.Conn) *client {
-	return &client{
+func newClient(conn *websocket.Conn) *Client {
+	client := &Client{
 		conn: conn,
 		id:   makeId(),
 	}
+
+	go client.reader()
+
+	return client
+}
+
+func (c *Client) reader() {
+	for {
+		_, msg, err := c.conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+		}
+
+		messageStruct := unmarshalMsg(msg)
+		if messageStruct != nil {
+			switch messageStruct.MsgType {
+			case Subscribe:
+				c.subscribe(messageStruct.Channel)
+			case Unsubscribe:
+				c.unsubscribe(messageStruct.Channel)
+			case Text:
+				c.onTextMsg(messageStruct)
+			}
+		}
+	}
+}
+
+func (c *Client) subscribe(channelName string) {
+	getChannelsInstance().getChannelByName(channelName).addClient(c)
+}
+
+func (c *Client) unsubscribe(channelName string) {
+	getChannelsInstance().getChannelByName(channelName).removeClient(c)
+}
+
+func (c *Client) onTextMsg(msg *messageStruct) {
+
+}
+
+func (c *Client) Listen(channelName string, callback func(msg string)) {
+
 }
