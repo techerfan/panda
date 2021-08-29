@@ -8,7 +8,7 @@ import (
 type MessageType int
 
 const (
-	Text MessageType = iota
+	Raw MessageType = iota
 	Subscribe
 	Unsubscribe
 )
