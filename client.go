@@ -85,7 +85,7 @@ func (c *Client) reader() {
 				c.subscribe(messageStruct.Channel)
 			case Unsubscribe:
 				c.unsubscribe(messageStruct.Channel)
-			case Text:
+			case Raw:
 				c.onTextMsg(messageStruct)
 			}
 		}
