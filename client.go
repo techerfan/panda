@@ -24,7 +24,7 @@ var idCounter = uint32(makeRandomInt(3))
 func makeRandomInt(bytesLen int) uint64 {
 	b := make([]byte, bytesLen)
 	if _, err := rand.Reader.Read(b); err != nil {
-		panic(fmt.Errorf("[Client]: cannot generate random number: %v.", err))
+		panic(fmt.Errorf("[Client]: cannot generate random number: %v", err))
 	}
 
 	// making the number regarding bytes length:
@@ -47,7 +47,7 @@ func makeId() string {
 	randomNum := makeRandomInt(5)
 	id[4] = byte(randomNum >> 32)
 	id[5] = byte(randomNum >> 24)
-	id[6] = byte(randomNum >> 26)
+	id[6] = byte(randomNum >> 16)
 	id[7] = byte(randomNum >> 8)
 	id[8] = byte(randomNum)
 
