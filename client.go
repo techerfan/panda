@@ -101,9 +101,16 @@ func (c *Client) unsubscribe(channelName string) {
 }
 
 func (c *Client) onTextMsg(msg *messageStruct) {
-
+	ch := getChannelsInstance().getChannelByName(msg.Channel)
+	ch.msgSender <- msg.Message
 }
 
+// listens to a channel and call a callback on its received message.
 func (c *Client) Listen(channelName string, callback func(msg string)) {
-
+	ch := getChannelsInstance().getChannelByName(channelName)
+	go func(ch *channel) {
+		for message := range ch.msgSender {
+			callback(message)
+		}
+	}(ch)
 }
