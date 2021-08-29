@@ -5,9 +5,18 @@ import (
 	"log"
 )
 
+type MessageType int
+
+const (
+	Text MessageType = iota
+	Subscribe
+	Unsubscribe
+)
+
 type messageStruct struct {
-	Channel string `json:"channel"`
-	Message string `json:"message"`
+	MsgType MessageType `json:"msgType"`
+	Channel string      `json:"channel"`
+	Message string      `json:"message"`
 }
 
 // type incomingMessage struct {
@@ -20,9 +29,10 @@ type messageStruct struct {
 // 	message []byte `json:"message"`
 // }
 
-func newMessage(channel string, message string) *messageStruct {
+func newMessage(channel string, message string, msgType MessageType) *messageStruct {
 
 	msg := &messageStruct{
+		MsgType: msgType,
 		Channel: channel,
 		Message: message,
 	}
