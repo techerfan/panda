@@ -28,8 +28,9 @@ const (
 )
 
 type App struct {
-	config Config
-	client []*client
+	config   Config
+	client   []*Client
+	channels map[string]*channel
 }
 
 type Config struct {
@@ -40,7 +41,8 @@ type Config struct {
 
 func NewApp(config Config) *App {
 	app := &App{
-		config: config,
+		config:   config,
+		channels: make(map[string]*channel),
 	}
 
 	if config.WebSocketPath == "" {
@@ -56,9 +58,7 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	a.client = append(a.client, &client{
-		conn: conn,
-	})
+	a.client = append(a.client, newClient(conn))
 }
 
 func (a *App) Serve() {
@@ -68,6 +68,10 @@ func (a *App) Serve() {
 	http.ListenAndServe(a.config.ServerAddress, nil)
 }
 
-func (a *App) Channel() {
+func (a *App) Send() {
+
+}
+
+func (a *App) Listen(channelName string, callback func(msg string)) {
 
 }
