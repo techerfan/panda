@@ -4,7 +4,7 @@ import "github.com/gorilla/websocket"
 
 type channel struct {
 	name    string
-	clients []*client
+	clients []*Client
 }
 
 func NewChannel(name string) *channel {
@@ -18,11 +18,11 @@ func NewChannel(name string) *channel {
 
 // }
 
-func (c *channel) addClient(cl *client) {
+func (c *channel) addClient(cl *Client) {
 	c.clients = append(c.clients, cl)
 }
 
-func (c *channel) removeClient(cl *client) {
+func (c *channel) removeClient(cl *Client) {
 	cl.lock.Lock()
 	defer cl.lock.Unlock()
 	for i, el := range c.clients {
