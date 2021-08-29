@@ -12,6 +12,18 @@ func newChannel(name string) *channel {
 	return channel
 }
 
-func (c *channel) sendMessage() {
+func (c *channel) addClient() {
 
+}
+
+func (c *channel) removeClient() {
+
+}
+
+func (c *channel) sendMessage(msg string) {
+
+}
+
+func (c *channel) destroy() {
+	c = nil
 }
