@@ -3,13 +3,15 @@ package panda
 import "github.com/gorilla/websocket"
 
 type channel struct {
-	name    string
-	clients []*Client
+	name      string
+	clients   []*Client
+	msgSender chan string
 }
 
 func NewChannel(name string) *channel {
 	channel := &channel{
-		name: name,
+		name:      name,
+		msgSender: make(chan string),
 	}
 	return channel
 }
@@ -32,10 +34,15 @@ func (c *channel) removeClient(cl *Client) {
 	}
 }
 
-func (c *channel) sendMessage(msg *messageStruct) {
+func (c *channel) sendMessage(message string) {
 	for _, cl := range c.clients {
 		cl.lock.Lock()
 		defer cl.lock.Unlock()
+		msg := &messageStruct{
+			Message: message,
+			Channel: c.name,
+			MsgType: Raw,
+		}
 		cl.conn.WriteMessage(websocket.BinaryMessage, msg.marshal())
 	}
 }
