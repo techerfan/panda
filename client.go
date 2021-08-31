@@ -105,5 +105,16 @@ func (c *Client) onTextMsg(msg *messageStruct) {
 }
 
 func (c *Client) Listen(channelName string, callback func(msg string)) {
+	ch := getChannelsInstance().getChannelByName(channelName)
 
+	go func(ch *channel, c *Client) {
+		for {
+			select {
+			case msg := <-ch.msgSender:
+				callback(msg)
+			case <-c.stopListening:
+				return
+			}
+		}
+	}(ch, c)
 }
