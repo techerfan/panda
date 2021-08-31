@@ -17,6 +17,7 @@ type Client struct {
 	lock          *sync.Mutex
 	id            string
 	stopListening chan bool
+	isListening   bool
 	newMessage    chan string
 }
 
@@ -116,17 +117,21 @@ func (c *Client) receiveRawMsg(msg *messageStruct) {
 		ch := getChannelsInstance().getChannelByName(msg.Channel)
 		ch.msgSender <- msg.Message
 	} else {
-		c.newMessage <- msg.Message
+		if c.isListening {
+			c.newMessage <- msg.Message
+		}
 	}
 }
 
 func (c *Client) OnMessage(callback func(msg string)) {
+	c.isListening = true
 	go func() {
 		for {
 			select {
 			case msg := <-c.newMessage:
 				callback(msg)
 			case <-c.stopListening:
+				c.isListening = false
 				return
 			}
 		}
