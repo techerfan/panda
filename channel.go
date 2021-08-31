@@ -20,33 +20,33 @@ func NewChannel(name string) *channel {
 
 // }
 
-func (c *channel) addClient(cl *Client) {
-	c.clients = append(c.clients, cl)
+func (ch *channel) addClient(cl *Client) {
+	ch.clients = append(ch.clients, cl)
 }
 
-func (c *channel) removeClient(cl *Client) {
+func (ch *channel) removeClient(cl *Client) {
 	cl.lock.Lock()
 	defer cl.lock.Unlock()
-	for i, el := range c.clients {
+	for i, el := range ch.clients {
 		if el == cl {
-			c.clients = append(c.clients[:i], c.clients[i+1:]...)
+			ch.clients = append(ch.clients[:i], ch.clients[i+1:]...)
 		}
 	}
 }
 
-func (c *channel) sendMessage(message string) {
-	for _, cl := range c.clients {
+func (ch *channel) sendMessage(message string) {
+	for _, cl := range ch.clients {
 		cl.lock.Lock()
 		defer cl.lock.Unlock()
 		msg := &messageStruct{
 			Message: message,
-			Channel: c.name,
+			Channel: ch.name,
 			MsgType: Raw,
 		}
 		cl.conn.WriteMessage(websocket.BinaryMessage, msg.marshal())
 	}
 }
 
-func (c *channel) destroy() {
-	c = nil
+func (ch *channel) destroy() {
+	ch = nil
 }
