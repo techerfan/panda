@@ -103,7 +103,8 @@ func (c *Client) unsubscribe(channelName string) {
 
 func (c *Client) receiveRawMsg(msg *messageStruct) {
 	if msg.Channel != "" {
-
+		ch := getChannelsInstance().getChannelByName(msg.Channel)
+		ch.msgSender <- msg.Message
 	} else {
 
 	}

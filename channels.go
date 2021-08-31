@@ -28,12 +28,16 @@ func (c *channels) getChannelByName(chName string) *channel {
 	if ch, ok := c.allChannels[chName]; ok {
 		return ch
 	}
-	return nil
+	ch := c.addChannel(chName)
+	return ch
 }
 
-func (c *channels) addChannel(chName string) {
-	if _, ok := c.allChannels[chName]; !ok {
-		// channel := panda.NewChannel(chName)
-		// c.allChannels[chName] = channel
+func (c *channels) addChannel(chName string) *channel {
+	if ch, ok := c.allChannels[chName]; !ok {
+		channel := NewChannel(chName)
+		c.allChannels[chName] = channel
+		return channel
+	} else {
+		return ch
 	}
 }
