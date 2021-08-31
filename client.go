@@ -13,9 +13,10 @@ import (
 )
 
 type Client struct {
-	conn *websocket.Conn
-	lock *sync.Mutex
-	id   string
+	conn          *websocket.Conn
+	lock          *sync.Mutex
+	id            string
+	stopListening chan bool
 }
 
 var idCounter = uint32(makeRandomInt(3))
@@ -86,7 +87,7 @@ func (c *Client) reader() {
 			case Unsubscribe:
 				c.unsubscribe(messageStruct.Channel)
 			case Raw:
-				c.onTextMsg(messageStruct)
+				c.receiveRawMsg(messageStruct)
 			}
 		}
 	}
@@ -100,7 +101,15 @@ func (c *Client) unsubscribe(channelName string) {
 	getChannelsInstance().getChannelByName(channelName).removeClient(c)
 }
 
-func (c *Client) onTextMsg(msg *messageStruct) {
+func (c *Client) receiveRawMsg(msg *messageStruct) {
+	if msg.Channel != "" {
+
+	} else {
+
+	}
+}
+
+func OnMessage(callback func(string)) {
 
 }
 
