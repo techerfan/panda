@@ -115,6 +115,9 @@ func (c *Client) receiveRawMsg(msg *messageStruct) {
 		ch := getChannelsInstance().getChannelByName(msg.Channel)
 		ch.msgSender <- msg.Message
 	} else {
+		c.newMessage <- msg.Message
+	}
+}
 
 	}
 }
