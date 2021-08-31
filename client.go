@@ -141,3 +141,7 @@ func (c *Client) Subscribe(channelName string, callback func(msg string)) {
 		}
 	}(ch, c)
 }
+
+func (c *Client) Unsubscribe(channelName string) {
+	c.unsubscribe(channelName)
+}
