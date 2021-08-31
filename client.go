@@ -17,6 +17,7 @@ type Client struct {
 	lock          *sync.Mutex
 	id            string
 	stopListening chan bool
+	newMessage    chan string
 }
 
 var idCounter = uint32(makeRandomInt(3))
