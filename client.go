@@ -127,7 +127,7 @@ func OnMessage(callback func(string)) {
 
 }
 
-func (c *Client) Listen(channelName string, callback func(msg string)) {
+func (c *Client) Subscribe(channelName string, callback func(msg string)) {
 	ch := getChannelsInstance().getChannelByName(channelName)
 
 	go func(ch *channel, c *Client) {
