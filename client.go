@@ -63,11 +63,20 @@ func makeId() string {
 
 func newClient(conn *websocket.Conn) *Client {
 	client := &Client{
-		conn: conn,
-		id:   makeId(),
+		conn:          conn,
+		id:            makeId(),
+		stopListening: make(chan bool),
+		newMessage:    make(chan string),
 	}
 
 	go client.reader()
+
+	closeHandlerInstance := conn.CloseHandler()
+
+	conn.SetCloseHandler(func(code int, text string) error {
+		close(client.stopListening)
+		return closeHandlerInstance(code, text)
+	})
 
 	return client
 }
