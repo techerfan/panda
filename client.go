@@ -120,11 +120,17 @@ func (c *Client) receiveRawMsg(msg *messageStruct) {
 	}
 }
 
-	}
-}
-
-func OnMessage(callback func(string)) {
-
+func (c *Client) OnMessage(callback func(msg string)) {
+	go func() {
+		for {
+			select {
+			case msg := <-c.newMessage:
+				callback(msg)
+			case <-c.stopListening:
+				return
+			}
+		}
+	}()
 }
 
 func (c *Client) Subscribe(channelName string, callback func(msg string)) {
