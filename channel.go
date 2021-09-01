@@ -62,14 +62,14 @@ func (ch *channel) sendMessageToClients(message string) {
 }
 
 func (ch *channel) sendMessageToSubscribers(message string) {
-	for _, subscriber := range ch.subscribers {
-		go func() {
-			subscriber.lock.Lock()
-			defer subscriber.lock.Unlock()
-			if subscriber.isOpen {
-				subscriber.newMessage <- message
+	for _, sub := range ch.subscribers {
+		go func(sub *subscriber) {
+			sub.lock.Lock()
+			defer sub.lock.Unlock()
+			if sub.isOpen {
+				sub.newMessage <- message
 			}
-		}()
+		}(sub)
 	}
 }
 
