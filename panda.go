@@ -108,6 +108,7 @@ func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
 		a.serveWs(rw, r)
 	})
+	logger.GetLogger().Log(logger.Info, "WebSocket Server is up on: "+a.config.ServerAddress)
 	if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
 		logger.GetLogger().Log(logger.Error, err.Error())
 	}
