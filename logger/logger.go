@@ -22,6 +22,7 @@ type logger struct {
 	headerName string
 	showDate   bool
 	showTime   bool
+	printLogs  bool
 }
 
 var lock = &sync.Mutex{}
@@ -36,10 +37,15 @@ func GetLogger() *logger {
 				headerName: "Panda",
 				showDate:   true,
 				showTime:   true,
+				printLogs:  true,
 			}
 		}
 	}
 	return l
+}
+
+func (l *logger) SetPrintLogs(doPrint bool) {
+	l.printLogs = doPrint
 }
 
 func (l *logger) SetName(name string) {
@@ -55,6 +61,9 @@ func (l *logger) SetShowTime(show bool) {
 }
 
 func (l *logger) Log(lType LogType, message string) {
+	if !l.printLogs {
+		return
+	}
 	var dt string = ""
 	var header string = ""
 	t := time.Now()
