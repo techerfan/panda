@@ -43,14 +43,18 @@ type Config struct {
 	CommunicationType CommunicationType
 }
 
-func NewApp(config Config) *App {
+func NewApp(config ...Config) *App {
 	app := &App{
-		config:        config,
+		config:        Config{},
 		newConn:       make(chan Client),
 		stopListening: make(chan bool),
 	}
 
-	if config.WebSocketPath == "" {
+	if len(config) > 0 {
+		app.config = config[0]
+	}
+
+	if app.config.WebSocketPath == "" {
 		app.config.WebSocketPath = DefaultWebSocketPath
 	}
 
