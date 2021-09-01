@@ -22,7 +22,7 @@ type logger struct {
 	headerName string
 	showDate   bool
 	showTime   bool
-	ShowLogs   bool
+	showLogs   bool
 }
 
 var lock = &sync.Mutex{}
