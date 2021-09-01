@@ -22,8 +22,8 @@ type CommunicationType int
 
 const (
 	JSON CommunicationType = iota
-	BINARY
 	// not implemented yet
+	BINARY
 	XML
 )
 
@@ -83,7 +83,7 @@ func (a *App) Serve() {
 }
 
 func (a *App) Send(channelName string, message string) {
-	getChannelsInstance().getChannelByName(channelName).sendMessage(message)
+	getChannelsInstance().getChannelByName(channelName).onNewMessage(message)
 }
 
 func (a *App) NewConnection(callback func(client *Client)) {
