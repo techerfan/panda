@@ -21,6 +21,12 @@ type Client struct {
 	newMessage    chan string
 }
 
+type subscriber struct {
+	newMessage chan string
+	lock       sync.Mutex
+	isOpen     bool
+}
+
 var idCounter = uint32(makeRandomInt(3))
 
 // generates a random unsinged integer (32 bit).
@@ -61,6 +67,13 @@ func makeId() string {
 	id[11] = byte(i)
 
 	return fmt.Sprintf("%x", id)
+}
+
+func newSubscriber() *subscriber {
+	return &subscriber{
+		isOpen:     true,
+		newMessage: make(chan string),
+	}
 }
 
 func newClient(conn *websocket.Conn) *Client {
@@ -141,16 +154,24 @@ func (c *Client) OnMessage(callback func(msg string)) {
 func (c *Client) Subscribe(channelName string, callback func(msg string)) {
 	ch := getChannelsInstance().getChannelByName(channelName)
 
-	go func(ch *channel, c *Client) {
+	subscriberIns := newSubscriber()
+
+	ch.subscribe(subscriberIns)
+
+	go func(subscriberIns *subscriber, c *Client) {
 		for {
 			select {
-			case msg := <-ch.msgSender:
+			case msg := <-subscriberIns.newMessage:
 				callback(msg)
 			case <-c.stopListening:
+				subscriberIns.lock.Lock()
+				defer subscriberIns.lock.Unlock()
+				subscriberIns.isOpen = false
+				ch.unsubscribe(subscriberIns)
 				return
 			}
 		}
-	}(ch, c)
+	}(subscriberIns, c)
 }
 
 func (c *Client) Unsubscribe(channelName string) {
