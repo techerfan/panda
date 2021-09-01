@@ -153,27 +153,26 @@ func (c *Client) OnMessage(callback func(msg string)) {
 
 func (c *Client) Subscribe(channelName string, callback func(msg string)) {
 	ch := getChannelsInstance().getChannelByName(channelName)
-
 	subscriberIns := newSubscriber()
-
 	ch.subscribe(subscriberIns)
-
-	go func(subscriberIns *subscriber, c *Client) {
-		for {
-			select {
-			case msg := <-subscriberIns.newMessage:
-				callback(msg)
-			case <-c.stopListening:
-				subscriberIns.lock.Lock()
-				defer subscriberIns.lock.Unlock()
-				subscriberIns.isOpen = false
-				ch.unsubscribe(subscriberIns)
-				return
-			}
-		}
-	}(subscriberIns, c)
+	go c.listenerThread(subscriberIns, callback, ch)
 }
 
 func (c *Client) Unsubscribe(channelName string) {
 	c.unsubscribe(channelName)
+}
+
+func (c *Client) listenerThread(subscriberIns *subscriber, callback func(string), ch *channel) {
+	for {
+		select {
+		case msg := <-subscriberIns.newMessage:
+			callback(msg)
+		case <-c.stopListening:
+			subscriberIns.lock.Lock()
+			defer subscriberIns.lock.Unlock()
+			subscriberIns.isOpen = false
+			ch.unsubscribe(subscriberIns)
+			return
+		}
+	}
 }
