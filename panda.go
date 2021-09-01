@@ -3,6 +3,7 @@ package panda
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 	"github.com/techerfan/panda/logger"
@@ -103,7 +104,11 @@ func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
 		a.serveWs(rw, r)
 	})
-	http.ListenAndServe(a.config.ServerAddress, nil)
+	err := http.ListenAndServe(a.config.ServerAddress, nil)
+	if err != nil {
+		logger.GetLogger().Log(logger.Error, err.Error())
+		os.Exit(1)
+	}
 }
 
 func (a *App) Send(channelName string, message string) {
