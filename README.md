@@ -1,5 +1,5 @@
 # Panda
-Panda is a library for event-based communications via **WebSockt**.
+Panda is a library for event-based communications via **WebSocket**.
 
 ### installation
 ```
