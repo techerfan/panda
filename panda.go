@@ -5,18 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/techerfan/panda/logger"
 )
 
-const DefaultWebSocketPath = "/ws"
-
-var Upgrader = websocket.Upgrader{
-	ReadBufferSize:    0,
-	WriteBufferSize:   0,
-	EnableCompression: true,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+const (
+	DefaultWebSocketPath = "/ws"
+	DefualtLogsHeader    = "Panda"
+)
 
 type CommunicationType int
 
@@ -26,6 +21,15 @@ const (
 	BINARY
 	XML
 )
+
+var Upgrader = websocket.Upgrader{
+	ReadBufferSize:    0,
+	WriteBufferSize:   0,
+	EnableCompression: true,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 type App struct {
 	config  Config
@@ -41,6 +45,10 @@ type Config struct {
 	ServerAddress     string
 	WebSocketPath     string
 	CommunicationType CommunicationType
+	// to choose if module print logs or not
+	NotShowLogs bool
+	// a name that will be showed in logs between [] like [Panda]
+	Logsheader string
 }
 
 func NewApp(config ...Config) *App {
@@ -58,7 +66,19 @@ func NewApp(config ...Config) *App {
 		app.config.WebSocketPath = DefaultWebSocketPath
 	}
 
+	if app.config.Logsheader == "" {
+		app.config.Logsheader = DefualtLogsHeader
+	}
+
+	app.initializeLogger()
+
 	return app
+}
+
+func (a *App) initializeLogger() {
+	l := logger.GetLogger()
+	l.SetName(a.config.Logsheader)
+	l.SetShowLogs(!a.config.NotShowLogs)
 }
 
 func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
