@@ -11,7 +11,8 @@ import (
 
 const (
 	DefaultWebSocketPath = "/ws"
-	DefualtLogsHeader    = "Panda"
+	DefaultLogsHeader    = "Panda"
+	DefaultServerAddress = ":8000"
 )
 
 type CommunicationType int
@@ -68,7 +69,11 @@ func NewApp(config ...Config) *App {
 	}
 
 	if app.config.Logsheader == "" {
-		app.config.Logsheader = DefualtLogsHeader
+		app.config.Logsheader = DefaultLogsHeader
+	}
+
+	if app.config.ServerAddress == "" {
+		app.config.ServerAddress = DefaultServerAddress
 	}
 
 	app.initializeLogger()
