@@ -110,8 +110,9 @@ func (a *App) Serve() {
 	})
 	if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
 		logger.GetLogger().Log(logger.Error, err.Error())
+	} else {
+		logger.GetLogger().Log(logger.Info, "WebSocket Server is up on: "+a.config.ServerAddress)
 	}
-	logger.GetLogger().Log(logger.Info, "WebSocket Server is up on: "+a.config.ServerAddress)
 }
 
 func (a *App) Send(channelName string, message string) {
