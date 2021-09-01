@@ -37,7 +37,7 @@ func GetLogger() *logger {
 				headerName: "Panda",
 				showDate:   true,
 				showTime:   true,
-				ShowLogs:   true,
+				showLogs:   true,
 			}
 		}
 	}
@@ -45,7 +45,7 @@ func GetLogger() *logger {
 }
 
 func (l *logger) SetShowLogs(doPrint bool) {
-	l.ShowLogs = doPrint
+	l.showLogs = doPrint
 }
 
 func (l *logger) SetName(name string) {
@@ -61,7 +61,7 @@ func (l *logger) SetShowTime(show bool) {
 }
 
 func (l *logger) Log(lType LogType, message string) {
-	if !l.ShowLogs {
+	if !l.showLogs {
 		return
 	}
 	var dt string = ""
