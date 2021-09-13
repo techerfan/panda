@@ -19,3 +19,29 @@ func TestMarshal(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestUnmarshal(t *testing.T) {
+	msgStr := `{
+		"msgType": 0,
+		"channel": "chat",
+		"message": "This is a test message."
+	}`
+
+	msgType := 0
+	m := "This is a test message."
+	ch := "chat"
+
+	msg := unmarshalMsg([]byte(msgStr))
+
+	if msg.Message != m {
+		t.Error("Message did not match")
+	}
+
+	if msg.Channel != ch {
+		t.Error("Channel did not match")
+	}
+
+	if msg.MsgType != MessageType(msgType) {
+		t.Error("Message type did not match")
+	}
+}
