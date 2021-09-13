@@ -112,7 +112,6 @@ func (c *Client) reader() {
 			case Unsubscribe:
 				c.unsubscribe(messageStruct.Channel)
 			case Raw:
-				logger.GetLogger().Log(logger.Info, messageStruct.Message)
 				c.receiveRawMsg(messageStruct)
 			}
 		}
