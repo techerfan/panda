@@ -103,9 +103,13 @@ func (c *Client) reader() {
 			logger.GetLogger().Log(logger.Error, err.Error())
 		}
 
-		logger.GetLogger().Log(logger.Info, "new message"+string(msg))
-
 		messageStruct := unmarshalMsg(msg)
+
+		logger.GetLogger().Log(logger.Info, "new message"+string(msg))
+		logger.GetLogger().Log(logger.Info, "Message type: "+string(messageStruct.MsgType))
+		logger.GetLogger().Log(logger.Info, "Message: "+messageStruct.Message)
+		logger.GetLogger().Log(logger.Info, "Channel: "+messageStruct.Channel)
+
 		if messageStruct != nil {
 			switch messageStruct.MsgType {
 			case Subscribe:
