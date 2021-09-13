@@ -106,7 +106,8 @@ func (c *Client) reader() {
 		messageStruct := unmarshalMsg(msg)
 
 		logger.GetLogger().Log(logger.Info, "new message"+string(msg))
-		logger.GetLogger().Log(logger.Info, "Message type: "+string(messageStruct.MsgType))
+		logger.GetLogger().Log(logger.Info, "Message type: "+string(int(messageStruct.MsgType)))
+		fmt.Println(messageStruct.MsgType)
 		logger.GetLogger().Log(logger.Info, "Message: "+messageStruct.Message)
 		logger.GetLogger().Log(logger.Info, "Channel: "+messageStruct.Channel)
 
