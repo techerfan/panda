@@ -127,24 +127,31 @@ func (c *Client) unsubscribe(channelName string) {
 }
 
 func (c *Client) receiveRawMsg(msg *messageStruct) {
+	logger.GetLogger().Log(logger.Info, "[INSIDE] -> receiveRawMsg")
 	if msg.Channel != "" {
 		ch := getChannelsInstance().getChannelByName(msg.Channel)
 		ch.msgSender <- msg.Message
 	} else {
+		logger.GetLogger().Log(logger.Info, "[INSIDE] -> receiveRawMsg: else")
 		if c.isListening {
+			logger.GetLogger().Log(logger.Info, "[INSIDE] -> receiveRawMsg: else: if")
 			c.newMessage <- msg.Message
 		}
 	}
 }
 
 func (c *Client) OnMessage(callback func(msg string)) {
+	logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage")
 	c.isListening = true
+	logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage")
 	go func() {
 		for {
 			select {
 			case msg := <-c.newMessage:
+				logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage -> thread -> select -> case -> msg: "+msg)
 				callback(msg)
 			case <-c.stopListening:
+				logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage -> thread -> select -> case -> stopListening")
 				c.isListening = false
 				return
 			}
@@ -167,6 +174,7 @@ func (c *Client) listenerThread(subscriberIns *subscriber, callback func(string)
 	for {
 		select {
 		case msg := <-subscriberIns.newMessage:
+			logger.GetLogger().Log(logger.Info, "[INSIDE] -> listenerThread: select: case: message"+msg)
 			callback(msg)
 		case <-c.stopListening:
 			subscriberIns.lock.Lock()
