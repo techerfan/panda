@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -143,8 +144,9 @@ func (c *Client) receiveRawMsg(msg *messageStruct) {
 func (c *Client) OnMessage(callback func(msg string)) {
 	logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage")
 	c.isListening = true
-	logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage")
+	logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage -> isListening: "+strconv.FormatBool(c.isListening))
 	go func() {
+		logger.GetLogger().Log(logger.Info, "[INSIDE] -> OnMessage -> inside thread")
 		for {
 			select {
 			case msg := <-c.newMessage:
