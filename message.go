@@ -2,7 +2,8 @@ package panda
 
 import (
 	"encoding/json"
-	"log"
+
+	"github.com/techerfan/panda/logger"
 )
 
 type MessageType int
@@ -42,7 +43,7 @@ func newMessage(channel string, message string, msgType MessageType) *messageStr
 func (m *messageStruct) marshal() []byte {
 	msgJSON, err := json.Marshal(&m)
 	if err != nil {
-		log.Println(err)
+		logger.GetLogger().Log(logger.Error, err.Error())
 		return []byte("")
 	}
 	return msgJSON
@@ -51,7 +52,7 @@ func (m *messageStruct) marshal() []byte {
 func unmarshalMsg(msg []byte) *messageStruct {
 	message := &messageStruct{}
 	if err := json.Unmarshal(msg, message); err != nil {
-		log.Println(err)
+		logger.GetLogger().Log(logger.Error, err.Error())
 		return nil
 	}
 	return message

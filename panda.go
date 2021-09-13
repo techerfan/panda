@@ -1,7 +1,6 @@
 package panda
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -89,7 +88,7 @@ func (a *App) initializeLogger() {
 func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
 	conn, err := Upgrader.Upgrade(rw, r, nil)
 	if err != nil {
-		log.Println(err)
+		logger.GetLogger().Log(logger.Error, err.Error())
 		return
 	}
 

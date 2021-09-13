@@ -4,12 +4,12 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/techerfan/panda/logger"
 )
 
 type Client struct {
@@ -100,7 +100,7 @@ func (c *Client) reader() {
 	for {
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
-			log.Println(err)
+			logger.GetLogger().Log(logger.Error, err.Error())
 		}
 
 		messageStruct := unmarshalMsg(msg)
