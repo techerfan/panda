@@ -103,6 +103,8 @@ func (c *Client) reader() {
 			logger.GetLogger().Log(logger.Error, err.Error())
 		}
 
+		logger.GetLogger().Log(logger.Info, "new message"+string(msg))
+
 		messageStruct := unmarshalMsg(msg)
 		if messageStruct != nil {
 			switch messageStruct.MsgType {
