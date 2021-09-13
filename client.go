@@ -105,12 +105,6 @@ func (c *Client) reader() {
 
 		messageStruct := unmarshalMsg(msg)
 
-		logger.GetLogger().Log(logger.Info, "new message"+string(msg))
-		logger.GetLogger().Log(logger.Info, "Message type: "+string(int(messageStruct.MsgType)))
-		fmt.Println(messageStruct.MsgType)
-		logger.GetLogger().Log(logger.Info, "Message: "+messageStruct.Message)
-		logger.GetLogger().Log(logger.Info, "Channel: "+messageStruct.Channel)
-
 		if messageStruct != nil {
 			switch messageStruct.MsgType {
 			case Subscribe:
@@ -118,6 +112,7 @@ func (c *Client) reader() {
 			case Unsubscribe:
 				c.unsubscribe(messageStruct.Channel)
 			case Raw:
+				logger.GetLogger().Log(logger.Info, messageStruct.Message)
 				c.receiveRawMsg(messageStruct)
 			}
 		}
