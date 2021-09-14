@@ -1,6 +1,8 @@
 package panda
 
-import "github.com/gorilla/websocket"
+import (
+	"github.com/gorilla/websocket"
+)
 
 type channel struct {
 	name        string
@@ -14,6 +16,9 @@ func NewChannel(name string) *channel {
 		name:      name,
 		msgSender: make(chan string),
 	}
+
+	go channel.listener()
+
 	return channel
 }
 
@@ -75,4 +80,10 @@ func (ch *channel) sendMessageToSubscribers(message string) {
 
 func (ch *channel) destroy() {
 	ch = nil
+}
+
+func (ch *channel) listener() {
+	for msg := range ch.msgSender {
+		ch.onNewMessage(msg)
+	}
 }
