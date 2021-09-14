@@ -34,7 +34,7 @@ var Upgrader = websocket.Upgrader{
 type App struct {
 	config  Config
 	clients []*Client
-	newConn chan Client
+	newConn chan *Client
 	// to check if app listens on new connection
 	isListening bool
 	// to stop apps from listening on new connections
@@ -54,7 +54,7 @@ type Config struct {
 func NewApp(config ...Config) *App {
 	app := &App{
 		config:        Config{},
-		newConn:       make(chan Client),
+		newConn:       make(chan *Client),
 		stopListening: make(chan bool),
 	}
 
@@ -99,7 +99,7 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
 	// we did this because if nobody listens on channel, Go will exit
 	// the program by code 1.
 	if a.isListening {
-		a.newConn <- *newCl
+		a.newConn <- newCl
 	}
 }
 
@@ -129,8 +129,8 @@ func (a *App) NewConnection(callback func(client *Client)) {
 		for {
 			select {
 			case newConn := <-app.newConn:
-				app.clients = append(app.clients, &newConn)
-				callback(&newConn)
+				app.clients = append(app.clients, newConn)
+				callback(newConn)
 			case <-app.stopListening:
 				return
 			}
