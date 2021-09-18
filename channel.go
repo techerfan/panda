@@ -53,6 +53,7 @@ func (ch *channel) unsubscribe(toBeRemovedSub *subscriber) {
 	}
 }
 
+// sends message to clients which subscribed on the 'pande-client' side.
 func (ch *channel) sendMessageToClients(message string) {
 	for _, cl := range ch.clients {
 		cl.lock.Lock()
@@ -66,6 +67,9 @@ func (ch *channel) sendMessageToClients(message string) {
 	}
 }
 
+// send messages to subscribers.
+// subscribers are the listeners that are defined in
+// the server side.
 func (ch *channel) sendMessageToSubscribers(message string) {
 	for _, sub := range ch.subscribers {
 		go func(sub *subscriber) {
@@ -82,6 +86,8 @@ func (ch *channel) destroy() {
 	ch = nil
 }
 
+// it listens on 'msgSender' channel which is used in order to
+// handle channel's new messages.
 func (ch *channel) listener() {
 	for msg := range ch.msgSender {
 		ch.onNewMessage(msg)
