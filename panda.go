@@ -103,6 +103,15 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *App) removeClient(c *Client) {
+	for i, cl := range a.clients {
+		if cl == c {
+			a.clients = append(a.clients[:i], a.clients[i+1:]...)
+			break
+		}
+	}
+}
+
 func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
 		a.serveWs(rw, r)
@@ -113,8 +122,17 @@ func (a *App) Serve() {
 	}
 }
 
-func (a *App) Send(channelName string, message string) {
-	getChannelsInstance().getChannelByName(channelName).onNewMessage(message)
+func (a *App) Broadcast(channelName string, message string) {
+	getChannelsInstance().getChannelByName(channelName).sendMessageToClients(message)
+}
+
+func (a *App) Send(message string) {
+	for _, cl := range a.clients {
+		err := cl.conn.WriteMessage(websocket.TextMessage, newMessage("", message, Raw).marshal())
+		if err != nil {
+			a.removeClient(cl)
+		}
+	}
 }
 
 func (a *App) NewConnection(callback func(client *Client)) {
