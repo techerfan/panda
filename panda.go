@@ -128,10 +128,14 @@ func (a *App) Broadcast(channelName string, message string) {
 
 func (a *App) Send(message string) {
 	for _, cl := range a.clients {
-		err := cl.conn.WriteMessage(websocket.TextMessage, newMessage("", message, Raw).marshal())
-		if err != nil {
-			a.removeClient(cl)
-		}
+		go func(c *Client) {
+			c.lock.Lock()
+			defer c.lock.Unlock()
+			err := c.conn.WriteMessage(websocket.TextMessage, newMessage("", message, Raw).marshal())
+			if err != nil {
+				a.removeClient(c)
+			}
+		}(cl)
 	}
 }
 
