@@ -79,6 +79,7 @@ func newSubscriber() *subscriber {
 func newClient(conn *websocket.Conn) *Client {
 	client := &Client{
 		conn:          conn,
+		lock:          &sync.Mutex{},
 		id:            makeId(),
 		stopListening: make(chan bool),
 		newMessage:    make(chan string),
