@@ -165,6 +165,14 @@ func (c *Client) Unsubscribe(channelName string) {
 	c.unsubscribe(channelName)
 }
 
+func (c *Client) Send(message string) {
+	c.conn.WriteMessage(websocket.TextMessage, newMessage("", message, Raw).marshal())
+}
+
+func (c *Client) Publish(channel string, message string) {
+	c.conn.WriteMessage(websocket.TextMessage, newMessage(channel, message, Raw).marshal())
+}
+
 func (c *Client) listenerThread(subscriberIns *subscriber, callback func(string), ch *channel) {
 	for {
 		select {
