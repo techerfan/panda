@@ -102,6 +102,7 @@ func (c *Client) reader() {
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
 			logger.GetLogger().Log(logger.Error, err.Error())
+			return
 		}
 
 		messageStruct := unmarshalMsg(msg)
