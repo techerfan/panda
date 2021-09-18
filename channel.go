@@ -62,7 +62,7 @@ func (ch *channel) sendMessageToClients(message string) {
 			Channel: ch.name,
 			MsgType: Raw,
 		}
-		cl.conn.WriteMessage(websocket.BinaryMessage, msg.marshal())
+		cl.conn.WriteMessage(websocket.TextMessage, msg.marshal())
 	}
 }
 
