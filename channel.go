@@ -55,15 +55,15 @@ func (ch *channel) unsubscribe(toBeRemovedSub *subscriber) {
 
 // sends message to clients which subscribed on the 'pande-client' side.
 func (ch *channel) sendMessageToClients(message string) {
+	msg := (&messageStruct{
+		Message: message,
+		Channel: ch.name,
+		MsgType: Raw,
+	}).marshal()
 	for _, cl := range ch.clients {
 		cl.lock.Lock()
 		defer cl.lock.Unlock()
-		msg := &messageStruct{
-			Message: message,
-			Channel: ch.name,
-			MsgType: Raw,
-		}
-		cl.conn.WriteMessage(websocket.TextMessage, msg.marshal())
+		cl.conn.WriteMessage(websocket.TextMessage, msg)
 	}
 }
 
