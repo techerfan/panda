@@ -38,6 +38,7 @@ func (ch *channel) removeClient(cl *Client) {
 	for i, el := range ch.clients {
 		if el == cl {
 			ch.clients = append(ch.clients[:i], ch.clients[i+1:]...)
+			return
 		}
 	}
 }
