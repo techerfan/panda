@@ -2,6 +2,7 @@ package panda
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/techerfan/panda/logger"
 )
 
 type channel struct {
@@ -61,9 +62,14 @@ func (ch *channel) sendMessageToClients(message string) {
 		MsgType: Raw,
 	}).marshal()
 	for _, cl := range ch.clients {
-		cl.lock.Lock()
-		defer cl.lock.Unlock()
-		cl.conn.WriteMessage(websocket.TextMessage, msg)
+		go func(cl *Client) {
+			cl.lock.Lock()
+			defer cl.lock.Unlock()
+			err := cl.conn.WriteMessage(websocket.TextMessage, msg)
+			if err != nil {
+				logger.GetLogger().Log(logger.Error, err.Error())
+			}
+		}(cl)
 	}
 }
 
