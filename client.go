@@ -13,12 +13,13 @@ import (
 )
 
 type Client struct {
-	conn          *websocket.Conn
-	lock          *sync.Mutex
-	id            string
-	stopListening chan bool
-	isListening   bool
-	newMessage    chan string
+	conn               *websocket.Conn
+	lock               *sync.Mutex
+	id                 string
+	stopListening      chan bool
+	isListening        bool
+	newMessage         chan string
+	subscribedChannels []*channel
 }
 
 type subscriber struct {
@@ -91,6 +92,7 @@ func newClient(conn *websocket.Conn) *Client {
 
 	conn.SetCloseHandler(func(code int, text string) error {
 		close(client.stopListening)
+		client.closeHandler()
 		return closeHandlerInstance(code, text)
 	})
 
@@ -110,9 +112,9 @@ func (c *Client) reader() {
 		if messageStruct != nil {
 			switch messageStruct.MsgType {
 			case Subscribe:
-				c.subscribe(messageStruct.Channel)
+				c.subscribeToChannel(messageStruct.Channel)
 			case Unsubscribe:
-				c.unsubscribe(messageStruct.Channel)
+				c.unsubscribeToChannel(messageStruct.Channel)
 			case Raw:
 				c.receiveRawMsg(messageStruct)
 			}
@@ -120,12 +122,20 @@ func (c *Client) reader() {
 	}
 }
 
-func (c *Client) subscribe(channelName string) {
-	getChannelsInstance().getChannelByName(channelName).addClient(c)
+func (c *Client) subscribeToChannel(channelName string) {
+	ch := getChannelsInstance().getChannelByName(channelName)
+	ch.addClient(c)
+	c.subscribedChannels = append(c.subscribedChannels, ch)
 }
 
-func (c *Client) unsubscribe(channelName string) {
-	getChannelsInstance().getChannelByName(channelName).removeClient(c)
+func (c *Client) unsubscribeToChannel(channelName string) {
+	ch := getChannelsInstance().getChannelByName(channelName)
+	ch.removeClient(c)
+	for i, channel := range c.subscribedChannels {
+		if ch == channel {
+			c.subscribedChannels = append(c.subscribedChannels[:i], c.subscribedChannels[i+1:]...)
+		}
+	}
 }
 
 func (c *Client) receiveRawMsg(msg *messageStruct) {
@@ -162,7 +172,7 @@ func (c *Client) Subscribe(channelName string, callback func(msg string)) {
 }
 
 func (c *Client) Unsubscribe(channelName string) {
-	c.unsubscribe(channelName)
+	c.unsubscribeToChannel(channelName)
 }
 
 func (c *Client) Send(message string) {
@@ -186,4 +196,11 @@ func (c *Client) listenerThread(subscriberIns *subscriber, callback func(string)
 			return
 		}
 	}
+}
+
+func (c *Client) closeHandler() {
+	for _, ch := range c.subscribedChannels {
+		ch.removeClient(c)
+	}
+	c = nil
 }
