@@ -25,14 +25,20 @@ type logger struct {
 	showLogs   bool
 }
 
-type Logger interface {
+type LoggerInterface interface {
 	Log(LogType, string)
+	// SetName(string)
+	// SetShowLogs(bool)
 }
 
 var lock = &sync.Mutex{}
-var l *logger
+var l LoggerInterface
 
-func GetLogger() *logger {
+func SetLogger(newLogger LoggerInterface) {
+	l = newLogger
+}
+
+func GetLogger() LoggerInterface {
 	if l == nil {
 		lock.Lock()
 		defer lock.Unlock()

@@ -49,6 +49,7 @@ type Config struct {
 	NotShowLogs bool
 	// a name that will be showed in logs between [] like [Panda]
 	Logsheader string
+	Logger     logger.LoggerInterface
 }
 
 func NewApp(config ...Config) *App {
@@ -74,16 +75,22 @@ func NewApp(config ...Config) *App {
 		app.config.ServerAddress = DefaultServerAddress
 	}
 
-	app.initializeLogger()
+	if app.config.Logger == nil {
+		app.config.Logger = logger.GetLogger()
+	} else {
+		logger.SetLogger(app.config.Logger)
+	}
+
+	// app.initializeLogger()
 
 	return app
 }
 
-func (a *App) initializeLogger() {
-	l := logger.GetLogger()
-	l.SetName(a.config.Logsheader)
-	l.SetShowLogs(!a.config.NotShowLogs)
-}
+// func (a *App) initializeLogger() {
+// 	l := logger.GetLogger()
+// 	l.SetName(a.config.Logsheader)
+// 	l.SetShowLogs(!a.config.NotShowLogs)
+// }
 
 func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
 	conn, err := Upgrader.Upgrade(rw, r, nil)
