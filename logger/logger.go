@@ -25,6 +25,10 @@ type logger struct {
 	showLogs   bool
 }
 
+type Logger interface {
+	Log(LogType, string)
+}
+
 var lock = &sync.Mutex{}
 var l *logger
 
