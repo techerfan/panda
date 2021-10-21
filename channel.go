@@ -25,7 +25,7 @@ func NewChannel(name string) *channel {
 
 func (ch *channel) onNewMessage(message string) {
 	ch.sendMessageToClients(message)
-	ch.sendMessageToSubscribers(message)
+	// ch.sendMessageToSubscribers(message)
 }
 
 func (ch *channel) addClient(cl *Client) {
