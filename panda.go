@@ -159,7 +159,9 @@ func (a *App) NewConnection(callback func(client *Client)) {
 			select {
 			case newConn := <-app.newConn:
 				app.clients = append(app.clients, newConn)
-				callback(newConn)
+				go func() {
+					callback(newConn)
+				}()
 			case <-app.stopListening:
 				return
 			}
