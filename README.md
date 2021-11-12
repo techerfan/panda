@@ -51,15 +51,11 @@ client.OnMessage(func (msg string) {
   // do whatever you want with the message...
 })
 ```
-2. `Subscribe`: Listens to the messages that are exchanged over a specified channel (I think this method has no use and It is possible that I delete it in the future😄️. change my mind: techerfan@gmail.com):
+2. `On`: Listens to the messages that are exchanged over a specified channel. You can decide wether send them to clients or do something else:
 ```golang
-client.Subscribe("chat_message", func(msg string) {
+client.On("chat_message", func(msg string) {
 	// do sth with the message...
 })
-```
-3. `Unsubscribe`: To unsbscribe from a channel:
-```golang
-client.Unsubscribe("channel_name")
 ```
 4. `Send`: To Send a message to client: 
 ```golang
