@@ -51,7 +51,7 @@ client.OnMessage(func (msg string) {
   // do whatever you want with the message...
 })
 ```
-2. `On`: Listens to the messages that are exchanged over a specified channel. You can decide whether send them to clients or do something else:
+2. `On`: Listens to the messages that are exchanged over a specified channel. You can decide whether send them to the clients or do something else:
 ```golang
 client.On("chat_message", func(msg string) {
 	// do sth with the message...
