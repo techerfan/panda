@@ -117,13 +117,13 @@ func (c *Client) reader() {
 }
 
 func (c *Client) subscribeToChannel(channelName string) {
-	ch := getChannelsInstance().getChannelByName(channelName)
+	ch := getChannelsInstance(c.logger).getChannelByName(channelName)
 	ch.addClient(c)
 	c.subscribedChannels = append(c.subscribedChannels, ch)
 }
 
 func (c *Client) unsubscribeToChannel(channelName string) {
-	ch := getChannelsInstance().getChannelByName(channelName)
+	ch := getChannelsInstance(c.logger).getChannelByName(channelName)
 	ch.removeClient(c)
 	for i, channel := range c.subscribedChannels {
 		if ch == channel {
@@ -203,7 +203,7 @@ func (c *Client) Publish(channel string, message string) {
 		// c.lock.Lock()
 		// defer c.lock.Unlock()
 		// c.conn.WriteMessage(websocket.TextMessage, newMessage(channel, message, Raw).marshal())
-		ch := getChannelsInstance().getChannelByName(channel)
+		ch := getChannelsInstance(c.logger).getChannelByName(channel)
 		ch.msgSender <- message
 	}()
 }

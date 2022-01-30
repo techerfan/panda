@@ -128,11 +128,11 @@ func (a *App) Serve() {
 }
 
 func (a *App) Broadcast(channelName string, message string) {
-	getChannelsInstance().getChannelByName(channelName).sendMessageToClients(message)
+	getChannelsInstance(a.config.Logger).getChannelByName(channelName).sendMessageToClients(message)
 }
 
 func (a *App) Destroy(channelName string) {
-	getChannelsInstance().getChannelByName(channelName).destroy()
+	getChannelsInstance(a.config.Logger).getChannelByName(channelName).destroy()
 }
 
 func (a *App) Send(message string) {

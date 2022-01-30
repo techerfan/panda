@@ -2,22 +2,26 @@ package panda
 
 import (
 	"sync"
+
+	"github.com/techerfan/panda/logger"
 )
 
 type channels struct {
 	allChannels map[string]*channel
+	logger      logger.Logger
 }
 
 var lock = &sync.Mutex{}
 var channelsInstance *channels
 
-func getChannelsInstance() *channels {
+func getChannelsInstance(logger logger.Logger) *channels {
 	if channelsInstance == nil {
 		lock.Lock()
 		defer lock.Unlock()
 		if channelsInstance == nil {
 			channelsInstance = &channels{
 				allChannels: make(map[string]*channel),
+				logger:      logger,
 			}
 		}
 	}
@@ -34,7 +38,7 @@ func (c *channels) getChannelByName(chName string) *channel {
 
 func (c *channels) addChannel(chName string) *channel {
 	if ch, ok := c.allChannels[chName]; !ok {
-		channel := NewChannel(ch.logger, chName)
+		channel := NewChannel(c.logger, chName)
 		c.allChannels[chName] = channel
 		return channel
 	} else {
