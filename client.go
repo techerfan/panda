@@ -21,6 +21,7 @@ type Client struct {
 	newMessage         chan string
 	subscribedChannels []*channel
 	listeners          map[string]chan string
+	logger             logger.Logger
 }
 
 type subscriber struct {
@@ -78,7 +79,7 @@ func newSubscriber() *subscriber {
 	}
 }
 
-func newClient(conn *websocket.Conn) *Client {
+func newClient(conn *websocket.Conn, logger logger.Logger) *Client {
 	client := &Client{
 		conn:          conn,
 		lock:          &sync.Mutex{},
@@ -86,6 +87,7 @@ func newClient(conn *websocket.Conn) *Client {
 		stopListening: make(chan bool),
 		newMessage:    make(chan string),
 		listeners:     make(map[string]chan string),
+		logger:        logger,
 	}
 
 	go client.reader()
@@ -105,11 +107,14 @@ func (c *Client) reader() {
 	for {
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
-			logger.GetLogger().Log(logger.Error, err.Error())
+			c.logger.Error(err.Error())
 			return
 		}
 
-		messageStruct := unmarshalMsg(msg)
+		messageStruct, err := unmarshalMsg(msg)
+		if err != nil {
+			c.logger.Error(err.Error())
+		}
 
 		if messageStruct != nil {
 			switch messageStruct.MsgType {
@@ -194,7 +199,15 @@ func (c *Client) Send(message string) {
 	go func() {
 		c.lock.Lock()
 		defer c.lock.Unlock()
-		c.conn.WriteMessage(websocket.TextMessage, newMessage("", message, Raw).marshal())
+		msg, err := newMessage("", message, Raw).marshal()
+		if err != nil {
+			c.logger.Error(err.Error())
+			return
+		}
+		err = c.conn.WriteMessage(websocket.TextMessage, msg)
+		if err != nil {
+			c.logger.Error(err.Error())
+		}
 	}()
 }
 

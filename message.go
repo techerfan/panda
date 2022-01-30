@@ -2,8 +2,6 @@ package panda
 
 import (
 	"encoding/json"
-
-	"github.com/techerfan/panda/logger"
 )
 
 type MessageType int
@@ -20,16 +18,6 @@ type messageStruct struct {
 	Message string      `json:"message"`
 }
 
-// type incomingMessage struct {
-// 	channel string `json:"channel"`
-// 	message []byte `json:"message"`
-// }
-
-// type forwardingMessage struct {
-// 	channel string `json:"channel"`
-// 	message []byte `json:"message"`
-// }
-
 func newMessage(channel string, message string, msgType MessageType) *messageStruct {
 
 	msg := &messageStruct{
@@ -40,20 +28,18 @@ func newMessage(channel string, message string, msgType MessageType) *messageStr
 	return msg
 }
 
-func (m *messageStruct) marshal() []byte {
+func (m *messageStruct) marshal() ([]byte, error) {
 	msgJSON, err := json.Marshal(&m)
 	if err != nil {
-		logger.GetLogger().Log(logger.Error, err.Error())
-		return []byte("")
+		return nil, err
 	}
-	return msgJSON
+	return msgJSON, nil
 }
 
-func unmarshalMsg(msg []byte) *messageStruct {
+func unmarshalMsg(msg []byte) (*messageStruct, error) {
 	message := &messageStruct{}
 	if err := json.Unmarshal(msg, message); err != nil {
-		logger.GetLogger().Log(logger.Error, err.Error())
-		return nil
+		return nil, err
 	}
-	return message
+	return message, nil
 }

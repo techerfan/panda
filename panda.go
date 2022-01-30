@@ -49,7 +49,7 @@ type Config struct {
 	NotShowLogs bool
 	// a name that will be showed in logs between [] like [Panda]
 	Logsheader string
-	Logger     logger.LoggerInterface
+	Logger     logger.Logger
 }
 
 func NewApp(config ...Config) *App {
@@ -76,9 +76,7 @@ func NewApp(config ...Config) *App {
 	}
 
 	if app.config.Logger == nil {
-		app.config.Logger = logger.GetLogger()
-	} else {
-		logger.SetLogger(app.config.Logger)
+		app.config.Logger = logger.New()
 	}
 
 	// app.initializeLogger()
@@ -95,11 +93,11 @@ func NewApp(config ...Config) *App {
 func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
 	conn, err := Upgrader.Upgrade(rw, r, nil)
 	if err != nil {
-		logger.GetLogger().Log(logger.Error, err.Error())
+		a.config.Logger.Error(err.Error())
 		return
 	}
 
-	newCl := newClient(conn)
+	newCl := newClient(conn, a.config.Logger)
 
 	// whenever a new client joins, we will send it over newConn channel
 	// but app must listens on new connections.
@@ -123,9 +121,9 @@ func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
 		a.serveWs(rw, r)
 	})
-	logger.GetLogger().Log(logger.Info, "WebSocket Server is up on: "+a.config.ServerAddress)
+	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
 	if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
-		logger.GetLogger().Log(logger.Error, err.Error())
+		a.config.Logger.Error(err.Error())
 	}
 }
 
@@ -138,8 +136,13 @@ func (a *App) Send(message string) {
 		go func(c *Client) {
 			c.lock.Lock()
 			defer c.lock.Unlock()
-			err := c.conn.WriteMessage(websocket.TextMessage, newMessage("", message, Raw).marshal())
+			msg, err := newMessage("", message, Raw).marshal()
 			if err != nil {
+				a.config.Logger.Error(err.Error())
+			}
+			err = c.conn.WriteMessage(websocket.TextMessage, msg)
+			if err != nil {
+				a.config.Logger.Error(err.Error())
 				a.removeClient(c)
 			}
 		}(cl)

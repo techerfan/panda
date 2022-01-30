@@ -10,9 +10,10 @@ type channel struct {
 	clients     []*Client
 	msgSender   chan string
 	subscribers []*subscriber
+	logger      logger.Logger
 }
 
-func NewChannel(name string) *channel {
+func NewChannel(logger logger.Logger, name string) *channel {
 	channel := &channel{
 		name:      name,
 		msgSender: make(chan string),
@@ -57,18 +58,21 @@ func (ch *channel) unsubscribe(toBeRemovedSub *subscriber) {
 
 // sends message to clients which subscribed on the 'pande-client' side.
 func (ch *channel) sendMessageToClients(message string) {
-	msg := (&messageStruct{
+	msg, err := (&messageStruct{
 		Message: message,
 		Channel: ch.name,
 		MsgType: Raw,
 	}).marshal()
+	if err != nil {
+		ch.logger.Error(err.Error())
+	}
 	for _, cl := range ch.clients {
 		go func(cl *Client) {
 			cl.lock.Lock()
 			defer cl.lock.Unlock()
 			err := cl.conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
-				logger.GetLogger().Log(logger.Error, err.Error())
+				cl.logger.Error(err.Error())
 			}
 		}(cl)
 	}

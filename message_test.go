@@ -10,10 +10,16 @@ func TestMarshal(t *testing.T) {
 		Channel: "sth",
 		Message: "My message",
 	}
+	msgByte, err := msg.marshal()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(msgByte))
 
-	fmt.Println(string(msg.marshal()))
-
-	messageInstance := unmarshalMsg(msg.marshal())
+	messageInstance, err := unmarshalMsg(msgByte)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if msg.Channel != messageInstance.Channel || msg.Message != messageInstance.Message {
 		t.Fail()
@@ -31,7 +37,10 @@ func TestUnmarshal(t *testing.T) {
 	m := "This is a test message."
 	ch := "chat"
 
-	msg := unmarshalMsg([]byte(msgStr))
+	msg, err := unmarshalMsg([]byte(msgStr))
+	if err != nil {
+		t.Error(err)
+	}
 
 	if msg.Message != m {
 		t.Error("Message did not match")
