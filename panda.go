@@ -2,6 +2,7 @@ package panda
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/techerfan/panda/logger"
@@ -49,7 +50,13 @@ type Config struct {
 	NotShowLogs bool
 	// a name that will be showed in logs between [] like [Panda]
 	Logsheader string
-	Logger     logger.Logger
+	// this handler validates client connection. if it was nil,
+	// package considers that authentication is not needed and
+	// let the client to establish the connection. it takes a
+	// token as input returns a boolean in order to whether continue
+	// or not and a time that specifies when connection should be destroyed.
+	AuthenticationHandler func(string) (*time.Time, bool)
+	Logger                logger.Logger
 }
 
 func NewApp(config ...Config) *App {
@@ -79,22 +86,28 @@ func NewApp(config ...Config) *App {
 		app.config.Logger = logger.New()
 	}
 
-	// app.initializeLogger()
-
 	return app
 }
 
-// func (a *App) initializeLogger() {
-// 	l := logger.GetLogger()
-// 	l.SetName(a.config.Logsheader)
-// 	l.SetShowLogs(!a.config.NotShowLogs)
-// }
-
-func (a *App) serveWs(rw http.ResponseWriter, r *http.Request) {
+func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *time.Time) {
 	conn, err := Upgrader.Upgrade(rw, r, nil)
 	if err != nil {
 		a.config.Logger.Error(err.Error())
 		return
+	}
+
+	// to close client's connection after the specified time
+	// it is optionanl to set destruction time so that developer
+	// can use the package without authentication/authorization.
+	if destructionTime != nil {
+		timer := time.NewTimer(time.Until(*destructionTime))
+		go func() {
+			<-timer.C
+			err := conn.Close()
+			if err != nil {
+				a.config.Logger.Error(err.Error())
+			}
+		}()
 	}
 
 	newCl := newClient(conn, a.config.Logger)
@@ -119,7 +132,21 @@ func (a *App) removeClient(c *Client) {
 
 func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
-		a.serveWs(rw, r)
+		var destructionTime *time.Time
+		if a.config.AuthenticationHandler != nil {
+			queries := r.URL.Query()
+			ticket := queries.Get("ticket")
+			if ticket == "" {
+				return
+			}
+			var isTicketOk bool
+			destructionTime, isTicketOk = a.config.AuthenticationHandler(ticket)
+			if !isTicketOk {
+				rw.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+		a.serveWs(rw, r, destructionTime)
 	})
 	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
 	if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
@@ -154,8 +181,8 @@ func (a *App) Send(message string) {
 }
 
 func (a *App) NewConnection(callback func(client *Client)) {
-	// it is not possible to have multiple listeners. so that we stop
-	// other listeners (if any exist) and then make a new one.
+	// it is not possible to have multiple listeners. so that we must stop
+	// other listeners (if any exists) and then make a new one.
 	if a.isListening {
 		a.stopListening <- true
 		a.isListening = true
