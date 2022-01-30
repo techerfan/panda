@@ -131,6 +131,10 @@ func (a *App) Broadcast(channelName string, message string) {
 	getChannelsInstance().getChannelByName(channelName).sendMessageToClients(message)
 }
 
+func (a *App) Destroy(channelName string) {
+	getChannelsInstance().getChannelByName(channelName).destroy()
+}
+
 func (a *App) Send(message string) {
 	for _, cl := range a.clients {
 		go func(c *Client) {
