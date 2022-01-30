@@ -6,11 +6,10 @@ import (
 )
 
 type channel struct {
-	name        string
-	clients     []*Client
-	msgSender   chan string
-	subscribers []*subscriber
-	logger      logger.Logger
+	name      string
+	clients   []*Client
+	msgSender chan string
+	logger    logger.Logger
 }
 
 func NewChannel(logger logger.Logger, name string) *channel {
@@ -44,18 +43,6 @@ func (ch *channel) removeClient(cl *Client) {
 	}
 }
 
-func (ch *channel) subscribe(newSubscriber *subscriber) {
-	ch.subscribers = append(ch.subscribers, newSubscriber)
-}
-
-func (ch *channel) unsubscribe(toBeRemovedSub *subscriber) {
-	for i, subscriber := range ch.subscribers {
-		if subscriber == toBeRemovedSub {
-			ch.subscribers = append(ch.subscribers[:i], ch.subscribers[i+1:]...)
-		}
-	}
-}
-
 // sends message to clients which subscribed on the 'pande-client' side.
 func (ch *channel) sendMessageToClients(message string) {
 	msg, err := (&messageStruct{
@@ -75,21 +62,6 @@ func (ch *channel) sendMessageToClients(message string) {
 				cl.logger.Error(err.Error())
 			}
 		}(cl)
-	}
-}
-
-// send messages to subscribers.
-// subscribers are the listeners that are defined in
-// the server side.
-func (ch *channel) sendMessageToSubscribers(message string) {
-	for _, sub := range ch.subscribers {
-		go func(sub *subscriber) {
-			sub.lock.Lock()
-			defer sub.lock.Unlock()
-			if sub.isOpen {
-				sub.newMessage <- message
-			}
-		}(sub)
 	}
 }
 

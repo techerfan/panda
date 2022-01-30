@@ -2,13 +2,10 @@ package panda
 
 import (
 	"sync"
-
-	"github.com/techerfan/panda/logger"
 )
 
 type channels struct {
 	allChannels map[string]*channel
-	logger      logger.Logger
 }
 
 var lock = &sync.Mutex{}

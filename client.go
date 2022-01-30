@@ -24,12 +24,6 @@ type Client struct {
 	logger             logger.Logger
 }
 
-type subscriber struct {
-	newMessage chan string
-	lock       sync.Mutex
-	isOpen     bool
-}
-
 var idCounter = uint32(makeRandomInt(3))
 
 // generates a random unsinged integer (32 bit).
@@ -70,13 +64,6 @@ func makeId() string {
 	id[11] = byte(i)
 
 	return fmt.Sprintf("%x", id)
-}
-
-func newSubscriber() *subscriber {
-	return &subscriber{
-		isOpen:     true,
-		newMessage: make(chan string),
-	}
 }
 
 func newClient(conn *websocket.Conn, logger logger.Logger) *Client {
