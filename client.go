@@ -21,6 +21,7 @@ type Client struct {
 	newMessage         chan string
 	subscribedChannels []*channel
 	listeners          map[string]chan string
+	ticket             string
 	logger             logger.Logger
 }
 
@@ -66,7 +67,7 @@ func makeId() string {
 	return fmt.Sprintf("%x", id)
 }
 
-func newClient(conn *websocket.Conn, logger logger.Logger) *Client {
+func newClient(logger logger.Logger, conn *websocket.Conn, ticket string) *Client {
 	client := &Client{
 		conn:          conn,
 		lock:          &sync.Mutex{},
@@ -74,6 +75,7 @@ func newClient(conn *websocket.Conn, logger logger.Logger) *Client {
 		stopListening: make(chan bool),
 		newMessage:    make(chan string),
 		listeners:     make(map[string]chan string),
+		ticket:        ticket,
 		logger:        logger,
 	}
 
@@ -134,8 +136,6 @@ func (c *Client) unsubscribeToChannel(channelName string) {
 
 func (c *Client) receiveRawMsg(msg *messageStruct) {
 	if msg.Channel != "" {
-		// ch := getChannelsInstance().getChannelByName(msg.Channel)
-		// ch.msgSender <- msg.Message
 		if ch, ok := c.listeners[msg.Channel]; ok {
 			ch <- msg.Message
 		}
@@ -171,17 +171,6 @@ func (c *Client) On(channelName string, callback func(msg string)) {
 	}
 }
 
-// func (c *Client) Subscribe(channelName string, callback func(msg string)) {
-// 	ch := getChannelsInstance().getChannelByName(channelName)
-// 	subscriberIns := newSubscriber()
-// 	ch.subscribe(subscriberIns)
-// 	go c.listenerThread(subscriberIns, callback, ch)
-// }
-
-// func (c *Client) Unsubscribe(channelName string) {
-// 	c.unsubscribeToChannel(channelName)
-// }
-
 func (c *Client) Send(message string) {
 	go func() {
 		c.lock.Lock()
@@ -200,28 +189,14 @@ func (c *Client) Send(message string) {
 
 func (c *Client) Publish(channel string, message string) {
 	go func() {
-		// c.lock.Lock()
-		// defer c.lock.Unlock()
-		// c.conn.WriteMessage(websocket.TextMessage, newMessage(channel, message, Raw).marshal())
 		ch := getChannelsInstance(c.logger).getChannelByName(channel)
 		ch.msgSender <- message
 	}()
 }
 
-// func (c *Client) listenerThread(subscriberIns *subscriber, callback func(string), ch *channel) {
-// 	for {
-// 		select {
-// 		case msg := <-subscriberIns.newMessage:
-// 			callback(msg)
-// 		case <-c.stopListening:
-// 			subscriberIns.lock.Lock()
-// 			defer subscriberIns.lock.Unlock()
-// 			subscriberIns.isOpen = false
-// 			ch.unsubscribe(subscriberIns)
-// 			return
-// 		}
-// 	}
-// }
+func (c *Client) GetTicket() string {
+	return c.ticket
+}
 
 func (c *Client) closeHandler() {
 	for _, ch := range c.subscribedChannels {

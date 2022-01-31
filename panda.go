@@ -89,7 +89,7 @@ func NewApp(config ...Config) *App {
 	return app
 }
 
-func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *time.Time) {
+func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *time.Time, ticket string) {
 	conn, err := Upgrader.Upgrade(rw, r, nil)
 	if err != nil {
 		a.config.Logger.Error(err.Error())
@@ -110,7 +110,7 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *
 		}()
 	}
 
-	newCl := newClient(conn, a.config.Logger)
+	newCl := newClient(a.config.Logger, conn, ticket)
 
 	// whenever a new client joins, we will send it over newConn channel
 	// but app must listens on new connections.
@@ -133,9 +133,10 @@ func (a *App) removeClient(c *Client) {
 func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
 		var destructionTime *time.Time
+		var ticket string
 		if a.config.AuthenticationHandler != nil {
 			queries := r.URL.Query()
-			ticket := queries.Get("ticket")
+			ticket = queries.Get("ticket")
 			if ticket == "" {
 				return
 			}
@@ -146,7 +147,7 @@ func (a *App) Serve() {
 				return
 			}
 		}
-		a.serveWs(rw, r, destructionTime)
+		a.serveWs(rw, r, destructionTime, ticket)
 	})
 	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
 	if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
