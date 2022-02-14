@@ -96,6 +96,8 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *
 		return
 	}
 
+	newCl := newClient(a.config.Logger, conn, ticket)
+
 	// to close client's connection after the specified time
 	// it is optionanl to set destruction time so that developer
 	// can use the package without authentication/authorization.
@@ -103,14 +105,13 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *
 		timer := time.NewTimer(time.Until(*destructionTime))
 		go func() {
 			<-timer.C
+			a.removeClient(newCl)
 			err := conn.Close()
 			if err != nil {
 				a.config.Logger.Error(err.Error())
 			}
 		}()
 	}
-
-	newCl := newClient(a.config.Logger, conn, ticket)
 
 	// whenever a new client joins, we will send it over newConn channel
 	// but app must listens on new connections.
