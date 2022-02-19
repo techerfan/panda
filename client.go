@@ -81,6 +81,15 @@ func newClient(logger logger.Logger, conn *websocket.Conn, ticket string) *Clien
 
 	go client.reader()
 
+	closeHandlerInstance := conn.CloseHandler()
+
+	conn.SetCloseHandler(func(code int, text string) error {
+		close(client.stopListening)
+		client.closeHandler()
+		client = nil
+		return closeHandlerInstance(code, text)
+	})
+
 	return client
 }
 
