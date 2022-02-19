@@ -81,14 +81,6 @@ func newClient(logger logger.Logger, conn *websocket.Conn, ticket string) *Clien
 
 	go client.reader()
 
-	closeHandlerInstance := conn.CloseHandler()
-
-	conn.SetCloseHandler(func(code int, text string) error {
-		close(client.stopListening)
-		client.closeHandler()
-		return closeHandlerInstance(code, text)
-	})
-
 	return client
 }
 
@@ -199,6 +191,8 @@ func (c *Client) GetTicket() string {
 func (c *Client) Destroy() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	close(c.stopListening)
+	c.closeHandler()
 	return c.conn.Close()
 }
 

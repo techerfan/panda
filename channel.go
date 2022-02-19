@@ -33,8 +33,6 @@ func (ch *channel) addClient(cl *Client) {
 }
 
 func (ch *channel) removeClient(cl *Client) {
-	cl.lock.Lock()
-	defer cl.lock.Unlock()
 	for i, el := range ch.clients {
 		if el == cl {
 			ch.clients = append(ch.clients[:i], ch.clients[i+1:]...)
