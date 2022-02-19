@@ -172,19 +172,17 @@ func (c *Client) On(channelName string, callback func(msg string)) {
 }
 
 func (c *Client) Send(message string) {
-	go func() {
-		c.lock.Lock()
-		defer c.lock.Unlock()
-		msg, err := newMessage("", message, Raw).marshal()
-		if err != nil {
-			c.logger.Error(err.Error())
-			return
-		}
-		err = c.conn.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			c.logger.Error(err.Error())
-		}
-	}()
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	msg, err := newMessage("", message, Raw).marshal()
+	if err != nil {
+		c.logger.Error(err.Error())
+		return
+	}
+	err = c.conn.WriteMessage(websocket.TextMessage, msg)
+	if err != nil {
+		c.logger.Error(err.Error())
+	}
 }
 
 func (c *Client) Publish(channel string, message string) {
