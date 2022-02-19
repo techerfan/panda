@@ -198,6 +198,12 @@ func (c *Client) GetTicket() string {
 	return c.ticket
 }
 
+func (c *Client) Destroy() error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	return c.conn.Close()
+}
+
 func (c *Client) closeHandler() {
 	for _, ch := range c.subscribedChannels {
 		ch.removeClient(c)

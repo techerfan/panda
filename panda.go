@@ -110,7 +110,7 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *
 			if a.config.TicketTokenExpirationHandler != nil {
 				a.config.TicketTokenExpirationHandler(newCl)
 			}
-			err := conn.Close()
+			err := newCl.Destroy()
 			if err != nil {
 				a.config.Logger.Error(err.Error())
 			}
