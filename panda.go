@@ -55,8 +55,9 @@ type Config struct {
 	// let the client to establish the connection. it takes a
 	// token as input returns a boolean in order to whether continue
 	// or not and a time that specifies when connection should be destroyed.
-	AuthenticationHandler func(string) (*time.Time, bool)
-	Logger                logger.Logger
+	AuthenticationHandler        func(string) (*time.Time, bool)
+	TicketTokenExpirationHandler func(client *Client)
+	Logger                       logger.Logger
 }
 
 func NewApp(config ...Config) *App {
@@ -106,6 +107,9 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *
 		go func() {
 			<-timer.C
 			a.removeClient(newCl)
+			if a.config.TicketTokenExpirationHandler != nil {
+				a.config.TicketTokenExpirationHandler(newCl)
+			}
 			err := conn.Close()
 			if err != nil {
 				a.config.Logger.Error(err.Error())
