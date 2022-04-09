@@ -1,6 +1,7 @@
 package panda
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/gorilla/websocket"
@@ -14,4 +15,19 @@ func TestNeWClientIds(t *testing.T) {
 	if client1.id == client2.id {
 		t.Error("Ids are same")
 	}
+}
+
+func TestDestroy(t *testing.T) {
+	t.Run("close a closed channel", func(t *testing.T) {
+		cl := &Client{
+			lock:          &sync.Mutex{},
+			stopListening: make(chan bool),
+			conn:          &websocket.Conn{},
+		}
+		close(cl.stopListening)
+		err := cl.Destroy()
+		if err != nil {
+			t.Error(err)
+		}
+	})
 }

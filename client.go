@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -81,14 +82,15 @@ func newClient(logger logger.Logger, conn *websocket.Conn, ticket string) *Clien
 
 	go client.reader()
 
-	closeHandlerInstance := conn.CloseHandler()
-
-	conn.SetCloseHandler(func(code int, text string) error {
-		close(client.stopListening)
-		client.closeHandler()
-		client = nil
-		return closeHandlerInstance(code, text)
-	})
+	// THIS PIECE OF CODE IS NOT SAFE. REMOVE IT WHEN YOU MADE
+	// SURE IT HAS NO USE.
+	// closeHandlerInstance := conn.CloseHandler()
+	// conn.SetCloseHandler(func(code int, text string) error {
+	// 	close(client.stopListening)
+	// 	client.closeHandler()
+	// 	client = nil
+	// 	return closeHandlerInstance(code, text)
+	// })
 
 	return client
 }
@@ -198,6 +200,11 @@ func (c *Client) GetTicket() string {
 }
 
 func (c *Client) Destroy() error {
+	defer func() {
+		if recover() != nil {
+			log.Println("an error occured while destroying a client")
+		}
+	}()
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	close(c.stopListening)
