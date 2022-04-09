@@ -90,51 +90,6 @@ func NewApp(config ...Config) *App {
 	return app
 }
 
-func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *time.Time, ticket string) {
-	conn, err := Upgrader.Upgrade(rw, r, nil)
-	if err != nil {
-		a.config.Logger.Error(err.Error())
-		return
-	}
-
-	newCl := newClient(a.config.Logger, conn, ticket)
-
-	// to close client's connection after the specified time
-	// it is optionanl to set destruction time so that developer
-	// can use the package without authentication/authorization.
-	if destructionTime != nil {
-		timer := time.NewTimer(time.Until(*destructionTime))
-		go func() {
-			<-timer.C
-			a.removeClient(newCl)
-			if a.config.TicketTokenExpirationHandler != nil {
-				a.config.TicketTokenExpirationHandler(newCl)
-			}
-			err := newCl.Destroy()
-			if err != nil {
-				a.config.Logger.Error(err.Error())
-			}
-		}()
-	}
-
-	// whenever a new client joins, we will send it over newConn channel
-	// but app must listens on new connections.
-	// we did this because if nobody listens on channel, Go will exit
-	// the program by code 1.
-	if a.isListening {
-		a.newConn <- newCl
-	}
-}
-
-func (a *App) removeClient(c *Client) {
-	for i, cl := range a.clients {
-		if cl == c {
-			a.clients = append(a.clients[:i], a.clients[i+1:]...)
-			break
-		}
-	}
-}
-
 func (a *App) Serve() {
 	http.HandleFunc(a.config.WebSocketPath, func(rw http.ResponseWriter, r *http.Request) {
 		var destructionTime *time.Time
@@ -207,4 +162,54 @@ func (a *App) NewConnection(callback func(client *Client)) {
 			}
 		}
 	}(a)
+}
+
+// to get how many clients are connected to the server.
+func (a *App) GetClientsCount() int {
+	return len(a.clients)
+}
+
+func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *time.Time, ticket string) {
+	conn, err := Upgrader.Upgrade(rw, r, nil)
+	if err != nil {
+		a.config.Logger.Error(err.Error())
+		return
+	}
+
+	newCl := newClient(a.config.Logger, conn, ticket)
+
+	// to close client's connection after the specified time
+	// it is optionanl to set destruction time so that developer
+	// can use the package without authentication/authorization.
+	if destructionTime != nil {
+		timer := time.NewTimer(time.Until(*destructionTime))
+		go func() {
+			<-timer.C
+			a.removeClient(newCl)
+			if a.config.TicketTokenExpirationHandler != nil {
+				a.config.TicketTokenExpirationHandler(newCl)
+			}
+			err := newCl.Destroy()
+			if err != nil {
+				a.config.Logger.Error(err.Error())
+			}
+		}()
+	}
+
+	// whenever a new client joins, we will send it over newConn channel
+	// but app must listens on new connections.
+	// we did this because if nobody listens on channel, Go will exit
+	// the program by code 1.
+	if a.isListening {
+		a.newConn <- newCl
+	}
+}
+
+func (a *App) removeClient(c *Client) {
+	for i, cl := range a.clients {
+		if cl == c {
+			a.clients = append(a.clients[:i], a.clients[i+1:]...)
+			break
+		}
+	}
 }
