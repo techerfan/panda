@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,6 +13,7 @@ import (
 )
 
 type Client struct {
+	app                *App
 	conn               *websocket.Conn
 	lock               *sync.Mutex
 	id                 string
@@ -68,8 +68,9 @@ func makeId() string {
 	return fmt.Sprintf("%x", id)
 }
 
-func newClient(logger logger.Logger, conn *websocket.Conn, ticket string) *Client {
+func newClient(app *App, logger logger.Logger, conn *websocket.Conn, ticket string) *Client {
 	client := &Client{
+		app:           app,
 		conn:          conn,
 		lock:          &sync.Mutex{},
 		id:            makeId(),
@@ -82,15 +83,13 @@ func newClient(logger logger.Logger, conn *websocket.Conn, ticket string) *Clien
 
 	go client.reader()
 
-	// THIS PIECE OF CODE IS NOT SAFE. REMOVE IT WHEN YOU MADE
-	// SURE IT HAS NO USE.
-	// closeHandlerInstance := conn.CloseHandler()
-	// conn.SetCloseHandler(func(code int, text string) error {
-	// 	close(client.stopListening)
-	// 	client.closeHandler()
-	// 	client = nil
-	// 	return closeHandlerInstance(code, text)
-	// })
+	closeHandlerInstance := conn.CloseHandler()
+	conn.SetCloseHandler(func(code int, text string) error {
+		close(client.stopListening)
+		client.closeHandler()
+		client = nil
+		return closeHandlerInstance(code, text)
+	})
 
 	return client
 }
@@ -202,7 +201,7 @@ func (c *Client) GetTicket() string {
 func (c *Client) Destroy() error {
 	defer func() {
 		if recover() != nil {
-			log.Println("an error occured while destroying a client")
+			c.logger.Error("an error occured while destroying a client")
 		}
 	}()
 	c.lock.Lock()
@@ -216,5 +215,6 @@ func (c *Client) closeHandler() {
 	for _, ch := range c.subscribedChannels {
 		ch.removeClient(c)
 	}
+	c.app.removeClient(c)
 	c = nil
 }

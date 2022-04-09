@@ -176,7 +176,7 @@ func (a *App) serveWs(rw http.ResponseWriter, r *http.Request, destructionTime *
 		return
 	}
 
-	newCl := newClient(a.config.Logger, conn, ticket)
+	newCl := newClient(a, a.config.Logger, conn, ticket)
 
 	// to close client's connection after the specified time
 	// it is optionanl to set destruction time so that developer
