@@ -3,9 +3,11 @@ package panda
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -183,6 +185,9 @@ func (c *Client) Send(message string) {
 	}
 	err = c.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
+		if errors.Is(err, syscall.EPIPE) {
+			c.Destroy()
+		}
 		c.logger.Error(err.Error())
 	}
 }

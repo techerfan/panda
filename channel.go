@@ -1,6 +1,9 @@
 package panda
 
 import (
+	"errors"
+	"syscall"
+
 	"github.com/gorilla/websocket"
 	"github.com/techerfan/panda/logger"
 )
@@ -57,6 +60,9 @@ func (ch *channel) sendMessageToClients(message string) {
 			defer cl.lock.Unlock()
 			err := cl.conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
+				if errors.Is(err, syscall.EPIPE) {
+					cl.Destroy()
+				}
 				cl.logger.Error(err.Error())
 			}
 		}(cl)
