@@ -9,7 +9,7 @@ import (
 func main() {
 
 	app := panda.NewApp(panda.Config{
-		DoNotShowLogs:       false,
+		DoNotShowLogs:     false,
 		CommunicationType: panda.JSON,
 	})
 
@@ -17,14 +17,6 @@ func main() {
 
 		client.OnMessage(func(msg string) {
 			fmt.Println("onmessage:", msg)
-		})
-
-		client.Subscribe("chat_message", func(msg string) {
-			fmt.Println("chat_message:", msg)
-		})
-
-		client.Subscribe("goodbye", func(msg string) {
-
 		})
 	})
 
