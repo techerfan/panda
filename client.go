@@ -186,7 +186,11 @@ func (c *Client) Send(message string) {
 	err = c.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		if errors.Is(err, syscall.EPIPE) {
-			c.Destroy()
+			// Because Destroy uses the same lock as this method
+			// does, therefore it should be called as a separate
+			// goroutine so this method can end and unlock the lock.
+			// Otherwise we will have a livelock.
+			go c.Destroy()
 		}
 		c.logger.Error(err.Error())
 	}
@@ -212,8 +216,11 @@ func (c *Client) Destroy() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	close(c.stopListening)
+	// because 'closeHandler' method sets client to nil, we
+	// should close the connection before we lose it.
+	err := c.conn.Close()
 	c.closeHandler()
-	return c.conn.Close()
+	return err
 }
 
 func (c *Client) closeHandler() {
