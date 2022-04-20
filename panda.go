@@ -47,16 +47,19 @@ type Config struct {
 	WebSocketPath     string
 	CommunicationType CommunicationType
 	// to choose if module print logs or not
-	NotShowLogs bool
+	DoNotShowLogs bool
 	// a name that will be showed in logs between [] like [Panda]
 	Logsheader string
-	// this handler validates client connection. if it was nil,
-	// package considers that authentication is not needed and
-	// let the client to establish the connection. it takes a
-	// token as input returns a boolean in order to whether continue
-	// or not and a time that specifies when connection should be destroyed.
+	// this handler validates client's connection. If it was nil,
+	// package will consider that authentication is not needed and
+	// let the client to establish the connection. It takes a
+	// token as input and returns a boolean in order to specify whether continue
+	// or not and a time that shows when the connection should be destroyed.
 	AuthenticationHandler        func(string) (*time.Time, bool)
+	//This handler decides what to do when a client's ticket is expired. 
+	//If it is nil, there will be no default behavior.
 	TicketTokenExpirationHandler func(client *Client)
+	// to use a custom logger.
 	Logger                       logger.Logger
 }
 

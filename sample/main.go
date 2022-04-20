@@ -9,7 +9,7 @@ import (
 func main() {
 
 	app := panda.NewApp(panda.Config{
-		NotShowLogs:       false,
+		DoNotShowLogs:       false,
 		CommunicationType: panda.JSON,
 	})
 
