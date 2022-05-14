@@ -103,6 +103,10 @@ func (c *Client) Destroy() error {
 	return err
 }
 
+func (c *Client) GetID() string {
+	return c.id
+}
+
 func (c *Client) reader() {
 	for {
 		_, msg, err := c.conn.ReadMessage()
