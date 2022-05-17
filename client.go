@@ -1,6 +1,7 @@
 package panda
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
@@ -17,6 +18,7 @@ import (
 var idCounter = uint32(makeRandomInt(3))
 
 type Client struct {
+	ctx                context.Context
 	app                *App
 	conn               *websocket.Conn
 	lock               *sync.Mutex
@@ -28,6 +30,39 @@ type Client struct {
 	listeners          map[string]chan string
 	ticket             string
 	logger             logger.Logger
+}
+
+func newClient(
+	ctx context.Context,
+	app *App,
+	logger logger.Logger,
+	conn *websocket.Conn,
+	ticket string,
+) *Client {
+	client := &Client{
+		ctx:           ctx,
+		app:           app,
+		conn:          conn,
+		lock:          &sync.Mutex{},
+		id:            makeId(),
+		stopListening: make(chan bool),
+		newMessage:    make(chan string),
+		listeners:     make(map[string]chan string),
+		ticket:        ticket,
+		logger:        logger,
+	}
+
+	go client.reader()
+
+	closeHandlerInstance := conn.CloseHandler()
+	conn.SetCloseHandler(func(code int, text string) error {
+		close(client.stopListening)
+		client.closeHandler()
+		client = nil
+		return closeHandlerInstance(code, text)
+	})
+
+	return client
 }
 
 func (c *Client) OnMessage(callback func(msg string)) {
@@ -105,6 +140,10 @@ func (c *Client) Destroy() error {
 
 func (c *Client) GetID() string {
 	return c.id
+}
+
+func (c *Client) Context() context.Context {
+	return c.ctx
 }
 
 func (c *Client) reader() {
@@ -207,30 +246,4 @@ func makeId() string {
 	id[11] = byte(i)
 
 	return fmt.Sprintf("%x", id)
-}
-
-func newClient(app *App, logger logger.Logger, conn *websocket.Conn, ticket string) *Client {
-	client := &Client{
-		app:           app,
-		conn:          conn,
-		lock:          &sync.Mutex{},
-		id:            makeId(),
-		stopListening: make(chan bool),
-		newMessage:    make(chan string),
-		listeners:     make(map[string]chan string),
-		ticket:        ticket,
-		logger:        logger,
-	}
-
-	go client.reader()
-
-	closeHandlerInstance := conn.CloseHandler()
-	conn.SetCloseHandler(func(code int, text string) error {
-		close(client.stopListening)
-		client.closeHandler()
-		client = nil
-		return closeHandlerInstance(code, text)
-	})
-
-	return client
 }
