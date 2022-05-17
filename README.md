@@ -85,6 +85,10 @@ err := client.Destroy()
 ```golang
 var ClientID string = client.GetClientID()
 ```
+9. `Context`: To get the context of the client.
+```golang
+ctx := client.Context()
+```
 
 
 ## License 
