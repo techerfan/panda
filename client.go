@@ -19,6 +19,7 @@ var idCounter = uint32(makeRandomInt(3))
 
 type Client struct {
 	ctx                context.Context
+	cancelCtx          context.CancelFunc
 	app                *App
 	conn               *websocket.Conn
 	lock               *sync.Mutex
@@ -33,14 +34,15 @@ type Client struct {
 }
 
 func newClient(
-	ctx context.Context,
 	app *App,
 	logger logger.Logger,
 	conn *websocket.Conn,
 	ticket string,
 ) *Client {
+	ctx, cancel := context.WithCancel(context.Background())
 	client := &Client{
 		ctx:           ctx,
+		cancelCtx:     cancel,
 		app:           app,
 		conn:          conn,
 		lock:          &sync.Mutex{},
@@ -63,6 +65,7 @@ func newClient(
 			}
 		}()
 		client.closeHandler()
+		client.cancelCtx()
 		client = nil
 		close(client.stopListening)
 		return closeHandlerInstance(code, text)
@@ -139,6 +142,7 @@ func (c *Client) Destroy() error {
 	// because 'closeHandler' method sets client to nil, we
 	// should close the connection before we lose it.
 	err := c.conn.Close()
+	c.cancelCtx()
 	c.closeHandler()
 	close(c.stopListening)
 	return err
