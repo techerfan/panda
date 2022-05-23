@@ -56,9 +56,15 @@ func newClient(
 
 	closeHandlerInstance := conn.CloseHandler()
 	conn.SetCloseHandler(func(code int, text string) error {
-		close(client.stopListening)
+		// recovering from closing a closed channel
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error("an error occured while closing the connections", r)
+			}
+		}()
 		client.closeHandler()
 		client = nil
+		close(client.stopListening)
 		return closeHandlerInstance(code, text)
 	})
 
@@ -130,11 +136,11 @@ func (c *Client) Destroy() error {
 	}()
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	close(c.stopListening)
 	// because 'closeHandler' method sets client to nil, we
 	// should close the connection before we lose it.
 	err := c.conn.Close()
 	c.closeHandler()
+	close(c.stopListening)
 	return err
 }
 
