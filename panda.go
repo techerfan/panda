@@ -55,12 +55,12 @@ type Config struct {
 	// let the client to establish the connection. It takes a
 	// token as input and returns a boolean in order to specify whether continue
 	// or not and a time that shows when the connection should be destroyed.
-	AuthenticationHandler        func(string) (*time.Time, bool)
-	//This handler decides what to do when a client's ticket is expired. 
+	AuthenticationHandler func(string) (*time.Time, bool)
+	//This handler decides what to do when a client's ticket is expired.
 	//If it is nil, there will be no default behavior.
 	TicketTokenExpirationHandler func(client *Client)
 	// to use a custom logger.
-	Logger                       logger.Logger
+	Logger logger.Logger
 }
 
 func NewApp(config ...Config) *App {

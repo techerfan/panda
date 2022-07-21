@@ -72,15 +72,24 @@ client.Send("your message")
 ```golang
 client.Publish("channel_name", "your message")
 ```
-7. `GetTicket`: Each client is authenticated via a ticket. You can get this ticket by this method:
+6. `GetTicket`: Each client is authenticated via a ticket. You can get this ticket by this method:
 ```golang
 var ticket string
 ticket = client.GetTicket()
 ```
-6. `Destroy`: To destroy a client's connection.
+7. `Destroy`: To destroy a client's connection.
 ```golang
 err := client.Destroy()
 ```
+8. `GetClientID`: To get the client's ID.
+```golang
+var ClientID string = client.GetClientID()
+```
+9. `Context`: To get the context of the client.
+```golang
+ctx := client.Context()
+```
+
 
 ## License 
 Licensed under the [MIT License](/LICENSE).
