@@ -22,7 +22,7 @@ The default is `Panda`.
 7. **`TicketTokenExpirationHandler`**: This handler decides what to do when a client's ticket is expired. If it is nil, there will be no default behavior.
 8. **`Logger`**: You can use your own logger if it follows [this](logger/logger.go) interface.
 
-⚠️ If you want to authenticate your clients by `AuthenticationHandler` you need to generate a **ticket** by yourself and add it to WebSocket URL as a query (e.g. http://localhost:8000/ws?ticket=MY_TICKET). This way you will receive the client's ticket by `AuthenticationHandler` when it tries to establish connection in order to validate the ticket.
+⚠️ If you want to authenticate your clients by the `AuthenticationHandler`, you need to generate a **ticket** by yourself and add it to the WebSocket URL as a query (e.g. http://localhost:8000/ws?ticket=MY_TICKET). This way, `AuthenticationHandler` validate the ticket each time a client tries to connect to server (Do not forget you need to generate ticket yourself and validate it by implementing `AuthenticationHandler`).
 
 ### Initalizing 
 ```golang
