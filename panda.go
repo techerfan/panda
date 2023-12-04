@@ -27,6 +27,7 @@ var Upgrader = websocket.Upgrader{
 	ReadBufferSize:    0,
 	WriteBufferSize:   0,
 	EnableCompression: true,
+
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -46,6 +47,9 @@ type Config struct {
 	ServerAddress     string
 	WebSocketPath     string
 	CommunicationType CommunicationType
+	IsTlSEnabled      bool
+	TLSCertPath       string
+	TlSKeyPath        string
 	// to choose if module print logs or not
 	DoNotShowLogs bool
 	// a name that will be showed in logs between [] like [Panda]
@@ -113,8 +117,14 @@ func (a *App) Serve() {
 		a.serveWs(rw, r, destructionTime, ticket)
 	})
 	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
-	if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
-		a.config.Logger.Error(err.Error())
+	if a.config.IsTlSEnabled {
+		if err := http.ListenAndServeTLS(a.config.ServerAddress, a.config.TLSCertPath, a.config.TlSKeyPath, nil); err != nil {
+			a.config.Logger.Error(err.Error())
+		}
+	} else {
+		if err := http.ListenAndServe(a.config.ServerAddress, nil); err != nil {
+			a.config.Logger.Error(err.Error())
+		}
 	}
 }
 
