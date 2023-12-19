@@ -1,6 +1,8 @@
 package panda
 
 import (
+	"crypto/tls"
+	"log"
 	"net/http"
 	"time"
 
@@ -118,7 +120,21 @@ func (a *App) Serve() {
 	})
 	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
 	if a.config.IsTlSEnabled {
-		if err := http.ListenAndServeTLS(a.config.ServerAddress, a.config.TLSCertPath, a.config.TlSKeyPath, nil); err != nil {
+
+		serverCert, err := tls.LoadX509KeyPair(a.config.TLSCertPath, a.config.TlSKeyPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		server := http.Server{
+			Addr: a.config.ServerAddress,
+			TLSConfig: &tls.Config{
+				Certificates:       []tls.Certificate{serverCert},
+				ClientAuth:         tls.NoClientCert,
+				InsecureSkipVerify: true,
+			},
+		}
+		if err := server.ListenAndServeTLS("", ""); err != nil {
 			a.config.Logger.Error(err.Error())
 		}
 	} else {
