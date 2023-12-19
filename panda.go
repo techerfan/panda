@@ -2,7 +2,6 @@ package panda
 
 import (
 	"crypto/tls"
-	"log"
 	"net/http"
 	"time"
 
@@ -46,12 +45,13 @@ type App struct {
 }
 
 type Config struct {
-	ServerAddress     string
-	WebSocketPath     string
-	CommunicationType CommunicationType
-	IsTlSEnabled      bool
-	TLSCertPath       string
-	TlSKeyPath        string
+	ServerAddress      string
+	WebSocketPath      string
+	CommunicationType  CommunicationType
+	IsTlSEnabled       bool
+	TLSCertPath        string
+	TlSKeyPath         string
+	InsecureSkipVerify bool
 	// to choose if module print logs or not
 	DoNotShowLogs bool
 	// a name that will be showed in logs between [] like [Panda]
@@ -121,20 +121,13 @@ func (a *App) Serve() {
 	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
 	if a.config.IsTlSEnabled {
 
-		serverCert, err := tls.LoadX509KeyPair(a.config.TLSCertPath, a.config.TlSKeyPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		server := http.Server{
 			Addr: a.config.ServerAddress,
 			TLSConfig: &tls.Config{
-				Certificates:       []tls.Certificate{serverCert},
-				ClientAuth:         tls.NoClientCert,
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: a.config.InsecureSkipVerify,
 			},
 		}
-		if err := server.ListenAndServeTLS("", ""); err != nil {
+		if err := server.ListenAndServeTLS(a.config.TLSCertPath, a.config.TlSKeyPath); err != nil {
 			a.config.Logger.Error(err.Error())
 		}
 	} else {
