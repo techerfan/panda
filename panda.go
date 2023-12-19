@@ -2,7 +2,9 @@ package panda
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -49,6 +51,7 @@ type Config struct {
 	WebSocketPath      string
 	CommunicationType  CommunicationType
 	IsTlSEnabled       bool
+	TlsRootCaPath      string
 	TLSCertPath        string
 	TlSKeyPath         string
 	InsecureSkipVerify bool
@@ -121,9 +124,21 @@ func (a *App) Serve() {
 	a.config.Logger.Info("WebSocket Server is up on: " + a.config.ServerAddress)
 	if a.config.IsTlSEnabled {
 
+		caPem, err := os.ReadFile(a.config.TlsRootCaPath)
+		if err != nil {
+			a.config.Logger.Error(err.Error())
+		}
+
+		// Read ca's cert
+		certPool := x509.NewCertPool()
+		if !certPool.AppendCertsFromPEM(caPem) {
+			a.config.Logger.Error("could not append ca pem")
+		}
+
 		server := http.Server{
 			Addr: a.config.ServerAddress,
 			TLSConfig: &tls.Config{
+				RootCAs:            certPool,
 				InsecureSkipVerify: a.config.InsecureSkipVerify,
 			},
 		}
