@@ -201,7 +201,12 @@ func (a *App) NewConnection(callback func(client *Client)) {
 	}(a)
 }
 
-// to get how many clients are connected to the server.
+// returns a slice of current clients
+func (a *App) GetClients() []*Client {
+	return a.clients
+}
+
+// returns how many clients are connected to the server.
 func (a *App) GetClientsCount() int {
 	return len(a.clients)
 }
