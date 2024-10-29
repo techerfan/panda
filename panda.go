@@ -152,8 +152,8 @@ func (a *App) Serve() {
 	}
 }
 
-func (a *App) Broadcast(channelName string, message string) {
-	getChannelsInstance(a.config.Logger).getChannelByName(channelName).sendMessageToClients(message)
+func (a *App) Broadcast(channelName string, message string, checker ...func(*Client) bool) {
+	getChannelsInstance(a.config.Logger).getChannelByName(channelName).sendMessageToClients(message, checker...)
 }
 
 func (a *App) Destroy(channelName string) {

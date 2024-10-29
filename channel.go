@@ -45,7 +45,7 @@ func (ch *channel) removeClient(cl *Client) {
 }
 
 // sends message to clients which subscribed on the 'pande-client' side.
-func (ch *channel) sendMessageToClients(message string) {
+func (ch *channel) sendMessageToClients(message string, checker ...func(*Client) bool) {
 	msg, err := (&messageStruct{
 		Message: message,
 		Channel: ch.name,
@@ -56,6 +56,9 @@ func (ch *channel) sendMessageToClients(message string) {
 	}
 	for _, cl := range ch.clients {
 		go func(cl *Client) {
+			if len(checker) == 0 || !checker[0](cl) {
+				return
+			}
 			cl.lock.Lock()
 			defer cl.lock.Unlock()
 			err := cl.conn.WriteMessage(websocket.TextMessage, msg)
