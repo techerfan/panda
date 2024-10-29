@@ -56,7 +56,7 @@ func (ch *channel) sendMessageToClients(message string, checker ...func(*Client)
 	}
 	for _, cl := range ch.clients {
 		go func(cl *Client) {
-			if len(checker) == 0 || !checker[0](cl) {
+			if len(checker) > 0 && !checker[0](cl) {
 				return
 			}
 			cl.lock.Lock()
@@ -82,7 +82,7 @@ func (ch *channel) sendMessageToClients(message string, checker ...func(*Client)
 func (ch *channel) sendMessageToClientsByCallback(cb func(*Client) string, checker ...func(*Client) bool) {
 	for _, cl := range ch.clients {
 		go func(cl *Client) {
-			if len(checker) == 0 || !checker[0](cl) {
+			if len(checker) > 0 && !checker[0](cl) {
 				return
 			}
 			cl.lock.Lock()
