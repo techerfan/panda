@@ -79,6 +79,40 @@ func (ch *channel) sendMessageToClients(message string, checker ...func(*Client)
 	}
 }
 
+func (ch *channel) sendMessageToClientsByCallback(cb func(*Client) string, checker ...func(*Client) bool) {
+	for _, cl := range ch.clients {
+		go func(cl *Client) {
+			if len(checker) == 0 || !checker[0](cl) {
+				return
+			}
+			cl.lock.Lock()
+			defer cl.lock.Unlock()
+			msg, err := (&messageStruct{
+				Message: cb(cl),
+				Channel: ch.name,
+				MsgType: Raw,
+			}).marshal()
+			if err != nil {
+				ch.logger.Error(err.Error())
+			}
+			err = cl.conn.WriteMessage(websocket.TextMessage, msg)
+			if err != nil {
+				// If connection is broken, there will be no need to
+				// keep the client anymore. So it's better to destroy
+				// the client when this error occured.
+				if errors.Is(err, syscall.EPIPE) {
+					// Because Destroy uses the same lock as this method
+					// does, therefore it should be called as a separate
+					// goroutine so this method can end and unlock the lock.
+					// Otherwise we will have a livelock.
+					go cl.Destroy()
+				}
+				cl.logger.Error(err.Error())
+			}
+		}(cl)
+	}
+}
+
 func (ch *channel) destroy() {
 	ch = nil
 }
