@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/gorilla/websocket v1.5.1
-	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 )
